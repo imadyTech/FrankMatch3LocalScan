@@ -1,0 +1,16 @@
+// Cloudflare Workers static-assets deployment of the Blazor WebAssembly demo.
+// Build command (Cloudflare Workers Builds has no .NET SDK, so it installs one first):
+//   curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh && bash dotnet-install.sh --channel 10.0 --install-dir ./.dotnet && ./.dotnet/dotnet publish BlazorSample -c Release -o publish
+// Deploy command: npx wrangler deploy
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "frankmatch3localscan",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./publish/wwwroot",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [
+    { "pattern": "frankmatch3localscan.imady.co.nz", "custom_domain": true }
+  ]
+}

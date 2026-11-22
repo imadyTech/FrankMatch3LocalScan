@@ -1,0 +1,5 @@
+publish/
+.dotnet/
+dotnet-install.sh
+.wrangler/
+node_modules/
