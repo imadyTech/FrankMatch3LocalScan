@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.12" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- The algorithm is referenced straight from the repository, not copied.
+       Compat/UnityShims.cs supplies the few Unity / game names those files mention. -->
+  <ItemGroup>
+    <Compile Include="..\Algorithms\**\*.cs" Link="Algorithms\%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- The engine-free board logic is shared with the Unity sample. -->
+    <Compile Include="..\UnitySample\Assets\FrankMatch3LocalScan\Runtime\Sample\SampleBoard.cs" Link="Sample\SampleBoard.cs" />
+    <Compile Include="..\UnitySample\Assets\FrankMatch3LocalScan\Runtime\Sample\SamplingLayout.cs" Link="Sample\SamplingLayout.cs" />
+  </ItemGroup>
+
+</Project>

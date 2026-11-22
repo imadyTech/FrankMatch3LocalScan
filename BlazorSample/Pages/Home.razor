@@ -1,0 +1,199 @@
+﻿@page "/"
+@using imady.FrankShenMatch3Hashing
+@using imady.FrankShenMatch3Hashing.Sample
+@using Vector2Int = imady.FrankShenMatch3Hashing.Vector2Int
+
+<PageTitle>FrankMatch3LocalScan · Blazor sample</PageTitle>
+
+<header class="top">
+    <div>
+        <h1>FrankMatch3LocalScan</h1>
+        <p class="sub">Blazor WebAssembly sample. Everything runs in your browser; there is no server.</p>
+    </div>
+    <div class="stats">
+        <span>Moves <b>@_moves</b></span>
+        <span>Cascades <b>@_cascades</b></span>
+        <span>Local scans <b>@_scanCount</b></span>
+        <button class="btn" disabled="@_busy" @onclick="NewBoard">New board</button>
+    </div>
+</header>
+
+<main class="layout">
+    <section>
+        <div class="board" style="grid-template-columns: repeat(@Width, 1fr);">
+            @for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    var p = new Vector2Int(x, y);
+                    ushort v = _board.Cells[y, x];
+                    <button class="@CellClass(p, v)" disabled="@_busy" @onclick="() => OnCellClick(p)"
+                            aria-label="@($"cell {x},{y} colour {v}")">
+                        <span class="glyph">@Glyphs[v]</span>
+                        @if (_sampled.Contains((x, y)))
+                        {
+                            <i class="dot" title="sampling point"></i>
+                        }
+                    </button>
+                }
+            }
+        </div>
+        <p class="hint">Click a tile, then a neighbour to swap. The outlined tile is the landing cell of the latest scan; the small dots are its 8 sampling points.</p>
+    </section>
+
+    <aside class="panel">
+        <h2>Latest scan</h2>
+        @if (_last != null)
+        {
+            <p class="mono">cell (@_last.Landing.x, @_last.Landing.y) · moved @DirName(_last.Direction)</p>
+            <div class="bits">
+                @for (int bit = 7; bit >= 0; bit--)
+                {
+                    bool on = ((_last.Hash >> bit) & 1) == 1;
+                    <div class="bit @(on ? "on" : "")"><small>bit @bit</small>@(on ? "1" : "0")</div>
+                }
+            </div>
+            <p class="mono">hash @_last.Hash → <b>@_last.Pattern</b></p>
+        }
+        else
+        {
+            <p class="muted">Make a swap to see the 8-bit hash.</p>
+        }
+
+        <h2>Log</h2>
+        <ol class="log mono">
+            @foreach (var line in _log)
+            {
+                <li>@line</li>
+            }
+        </ol>
+    </aside>
+</main>
+
+@code {
+    const int Width = 8;
+    const int Height = 8;
+    const int Colors = 5;
+    const int StepMs = 320;
+
+    static readonly string[] Glyphs = { "", "◆", "●", "▲", "■", "★", "✚" };
+
+    SampleBoard _board;
+    Vector2Int? _selected;
+    bool _busy;
+    HashSet<(int x, int y)> _highlight = new();
+    readonly HashSet<(int x, int y)> _sampled = new();
+    ScanRecord _last;
+    readonly List<string> _log = new();
+    int _moves, _cascades, _scanCount, _seed = Environment.TickCount;
+
+    protected override void OnInitialized() => NewBoard();
+
+    void NewBoard()
+    {
+        _board = new SampleBoard(Width, Height, Colors, _seed++);
+        _board.FillWithoutLines();
+        _selected = null;
+        _highlight.Clear();
+        _sampled.Clear();
+        _last = null;
+        _log.Clear();
+        Log("New board.");
+    }
+
+    void Log(string line)
+    {
+        _log.Insert(0, line);
+        if (_log.Count > 40) _log.RemoveAt(_log.Count - 1);
+    }
+
+    static string DirName(Vector2Int d) =>
+        d == Vector2Int.left ? "left" : d == Vector2Int.right ? "right" : d == Vector2Int.up ? "up" : "down";
+
+    string CellClass(Vector2Int p, ushort v)
+    {
+        var c = $"cell c{v}";
+        if (_selected.HasValue && _selected.Value == p) c += " selected";
+        if (_highlight.Contains((p.x, p.y))) c += " matched";
+        if (_last != null && _last.Landing == p) c += " landing";
+        return c;
+    }
+
+    void Show(ScanRecord r)
+    {
+        _last = r;
+        _sampled.Clear();
+        for (int bit = 7; bit >= 0; bit--)
+        {
+            var (dx, dy) = SamplingLayout.OffsetForBit(bit, r.Direction);
+            _sampled.Add((r.Landing.x + dx, r.Landing.y + dy));
+        }
+        string bits = Convert.ToString(r.Hash, 2).PadLeft(8, '0');
+        Log($"({r.Landing.x},{r.Landing.y}) {DirName(r.Direction),-5} {bits} ({r.Hash,3}) → {r.Pattern}");
+    }
+
+    async Task OnCellClick(Vector2Int cell)
+    {
+        if (_busy) return;
+        if (_selected == null) { _selected = cell; return; }
+        var a = _selected.Value;
+        _selected = null;
+        if (a == cell) return;
+        if (!SampleBoard.AreAdjacent(a, cell)) { _selected = cell; return; }
+        await SwapAsync(a, cell);
+    }
+
+    async Task Step(int ms)
+    {
+        StateHasChanged();
+        await Task.Delay(ms);
+    }
+
+    async Task SwapAsync(Vector2Int a, Vector2Int b)
+    {
+        _busy = true;
+        _board.Swap(a, b);
+        await Step(StepMs);
+
+        // Two local scans: the tile now on b came from a, and the tile now on a came from b.
+        var records = _board.ScanMoves(new[] { new TileMove(a, b), new TileMove(b, a) });
+        _scanCount += records.Count;
+        foreach (var r in records) Show(r);
+
+        if (SampleBoard.MatchedCells(records).Count == 0)
+        {
+            Log("No pattern: swap reverted.");
+            await Step(StepMs);
+            _board.Swap(a, b);
+            _busy = false;
+            return;
+        }
+
+        _moves++;
+        int round = 0;
+        while (true)
+        {
+            var matched = SampleBoard.MatchedCells(records);
+            if (matched.Count == 0) break;
+            if (round > 0) _cascades++;
+
+            _highlight = matched;
+            await Step(StepMs);
+            _board.Clear(matched);
+            _highlight = new();
+            await Step(StepMs / 2);
+
+            var landed = _board.CollapseAndRefill();
+            await Step(StepMs);
+
+            // Cascades: only the tiles that just landed are scanned, each with direction "down".
+            round++;
+            records = _board.ScanMoves(landed);
+            _scanCount += records.Count;
+            var found = records.Where(r => r.Match != null).ToList();
+            Log($"Cascade {round}: {landed.Count} tiles landed, {found.Count} pattern(s).");
+            foreach (var r in found) Show(r);
+        }
+        _busy = false;
+    }
+}
