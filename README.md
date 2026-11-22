@@ -1,4 +1,4 @@
-## End of old age - my last manually developed coding project ##
+## my last manually developed coding project ##
 
 This is my last effort in solving a practical problem with pure human input.
 
@@ -16,3 +16,8 @@ Noticeablly the direction of swapping is one of elements that participate the ca
 2. next step
 
 the algorithm returns the result of match scanning - no match, or the highest matched pattern. Cells will be eliminated, and refilled, and followed by next round match scan when the new units landing to the target cell - one by one, adn the cascading matches could be solved.
+
+
+3. Now you can try it:
+
+https://imadytech.github.io/FrankMatch3LocalScan/
