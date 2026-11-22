@@ -20,4 +20,4 @@ the algorithm returns the result of match scanning - no match, or the highest ma
 
 3. Now you can try it:
 
-https://imadytech.github.io/FrankMatch3LocalScan/
+https://frankmatch3localscan.imady.co.nz/

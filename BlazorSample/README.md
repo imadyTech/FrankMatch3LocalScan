@@ -4,7 +4,7 @@ The same minimal match-3 board as the Unity sample, running as a **Blazor WebAss
 Everything runs in the browser. There is no server-side code, so the published output can be hosted on
 any static file host (GitHub Pages, Cloudflare Pages, Azure Static Web Apps, a plain folder behind nginx).
 
-**Live demo:** https://imadytech.github.io/FrankMatch3LocalScan/
+**Live demo:** https://frankmatch3localscan.imady.co.nz/
 (deployed by `.github/workflows/blazor-pages.yml` on every push to `main` that touches the algorithm or this sample).
 
 ## Run it
@@ -28,6 +28,9 @@ dotnet publish -c Release -o publish
 
 Serve `publish/wwwroot` from any static host. To host under a sub-path (for example
 `https://<user>.github.io/FrankMatch3LocalScan/`), change `<base href="/" />` in `wwwroot/index.html` to that path.
+
+The live demo is deployed to Cloudflare Workers with [`../wrangler.jsonc`](../wrangler.jsonc). Its header lists the
+build command, which installs the .NET 10 SDK first because the Cloudflare build image does not include one.
 
 ## How it references the algorithm
 
