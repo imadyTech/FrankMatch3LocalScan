@@ -1,0 +1,57 @@
+name: Deploy Blazor sample to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Algorithms/**"
+      - "BlazorSample/**"
+      - "UnitySample/Assets/FrankMatch3LocalScan/Runtime/Sample/**"
+      - ".github/workflows/blazor-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish
+        run: dotnet publish BlazorSample/FrankMatch3LocalScan.BlazorSample.csproj -c Release -o publish
+
+      - name: Prepare for GitHub Pages
+        run: |
+          site=publish/wwwroot
+          # The site is served from /<repo>/, not from the domain root.
+          sed -i 's|<base href="/" />|<base href="/${{ github.event.repository.name }}/" />|' "$site/index.html"
+          grep -q '<base href="/${{ github.event.repository.name }}/" />' "$site/index.html"
+          # Unknown paths fall back to the app; _framework must not be processed by Jekyll.
+          cp "$site/index.html" "$site/404.html"
+          touch "$site/.nojekyll"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -4,6 +4,9 @@ The same minimal match-3 board as the Unity sample, running as a **Blazor WebAss
 Everything runs in the browser. There is no server-side code, so the published output can be hosted on
 any static file host (GitHub Pages, Cloudflare Pages, Azure Static Web Apps, a plain folder behind nginx).
 
+**Live demo:** https://imadytech.github.io/FrankMatch3LocalScan/
+(deployed by `.github/workflows/blazor-pages.yml` on every push to `main` that touches the algorithm or this sample).
+
 ## Run it
 
 Requires the .NET 10 SDK.
