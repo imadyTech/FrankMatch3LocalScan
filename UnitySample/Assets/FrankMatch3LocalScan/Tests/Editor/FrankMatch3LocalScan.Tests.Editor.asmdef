@@ -1,0 +1,17 @@
+{
+    "name": "FrankMatch3LocalScan.Tests.Editor",
+    "rootNamespace": "imady.FrankShenMatch3Hashing.Tests",
+    "references": [
+        "FrankMatch3LocalScan.Runtime",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [ "Editor" ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [ "nunit.framework.dll" ],
+    "autoReferenced": false,
+    "defineConstraints": [ "UNITY_INCLUDE_TESTS" ],
+    "noEngineReferences": false
+}
