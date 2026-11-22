@@ -128,3 +128,6 @@ html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: s
 .bit.on small { color: var(--bg); opacity: .7; }
 .log { list-style: none; margin: 0; padding: 0; max-height: 380px; overflow: auto; white-space: pre; font-size: 12px; }
 .log li { padding: 2px 0; border-bottom: 1px solid var(--rule); }
+.links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 14px; }
+.links a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--ink-2); }
+.links a:hover { border-bottom-color: var(--ink); }
